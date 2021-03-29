@@ -61,6 +61,10 @@ class WithVC709System extends Config((site, here, up) => {
   case BuildSystem => (p: Parameters) => new VC709DigitalTop()(p)
 })
 
+class OctoRocketConfig extends Config(
+  new freechips.rocketchip.subsystem.WithNBigCores(8) ++        // Octo-core (8 RocketTiles)
+  new chipyard.config.AbstractConfig)
+
 class RocketVC709Config extends Config(
   new WithVC709System ++
   new WithVC709Tweaks ++
