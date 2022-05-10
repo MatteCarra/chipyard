@@ -1,0 +1,13 @@
+OS: Ubuntu 20.04 LTS
+Vivado: 21.1
+Chipyard: 1.6.2 + commit https://github.com/ucb-bar/chipyard/commit/af78c9cadf01e3bd0244d06b6c7fe3735031aa13
+
+Steps:
+ - Follow this guide to setup chipyard repo: https://chipyard.readthedocs.io/en/1.6.2/Chipyard-Basics/Initial-Repo-Setup.html
+ - Setup FPGA top level folder with this guide: https://chipyard.readthedocs.io/en/1.6.2/Prototyping/General.html
+ - For vcu118:
+    - A license is required
+    - Run: make SUB_PROJECT=vcu118 CONFIG=RocketVCU118Config bitstream
+ - For arty run: 
+    - Diligent board files are required: https://digilent.com/reference/programmable-logic/guides/installing-vivado-and-sdk
+    - Run: make SUB_PROJECT=arty CONFIG=TinyRocketArtyConfig bitstream
