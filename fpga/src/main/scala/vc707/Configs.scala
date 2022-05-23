@@ -6,7 +6,9 @@ import freechips.rocketchip.subsystem.ExtMem
 import sifive.blocks.devices.uart.{PeripheryUARTKey, UARTParams}
 import sifive.fpgashells.shell.xilinx.VC7071GDDRSize
 import testchipip.SerialTLKey
-
+import sifive.fpgashells.shell.DesignKey
+import chipyard.ChipTop
+import freechips.rocketchip.config.Parameters
 class WithDefaultPeripherals extends Config((site, here, up) => {
   case PeripheryUARTKey => List(UARTParams(address = BigInt(0x64000000L)))
 })
@@ -15,6 +17,10 @@ class WithSystemModifications extends Config((site, here, up) => {
   case DTSTimebase => BigInt((1e6).toLong)
   case ExtMem => up(ExtMem, site).map(x => x.copy(master = x.master.copy(size = site(VC7071GDDRSize)))) // set extmem to DDR size
   case SerialTLKey => None // remove serialized tl port
+})
+
+class WithVCU707ChipTop extends Config((site, here, up) => {
+  case DesignKey => (p: Parameters) => new ChipTop()(p).suggestName("chiptop")
 })
 
 // DOC include start: AbstractVC707 and Rocket
@@ -32,6 +38,7 @@ class WithVC707Tweaks extends Config(
     new chipyard.config.WithNoDebug ++ // remove debug module
     new freechips.rocketchip.subsystem.WithoutTLMonitors ++
     new freechips.rocketchip.subsystem.WithNMemoryChannels(1) ++
+    new WithVCU707ChipTop ++
     new WithFPGAFrequency(100) // default 100MHz freq
 )
 
