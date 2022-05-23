@@ -3,9 +3,10 @@ package chipyard.fpga.vc707
 import chipsalliance.rocketchip.config.Config
 import chipyard.{BuildTop, CanHaveMasterTLMemPort, ChipTop, DefaultClockFrequencyKey, ExtTLMem}
 import chisel3.experimental.Analog
-import chisel3.fromIntToWidth
+import chisel3.{Flipped, fromIntToWidth}
 import freechips.rocketchip.config.Parameters
 import freechips.rocketchip.diplomacy.{BundleBridgeSource, LazyModule}
+import freechips.rocketchip.jtag.JTAGIO
 import freechips.rocketchip.tilelink.TLClientNode
 import sifive.blocks.devices.jtag.JTAGPins
 import sifive.blocks.devices.uart.{PeripheryUARTKey, UARTPortIO}
