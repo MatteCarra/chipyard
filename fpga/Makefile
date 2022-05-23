@@ -59,6 +59,20 @@ ifeq ($(SUB_PROJECT),arty)
 	FPGA_BRAND        ?= xilinx
 endif
 
+ifeq ($(SUB_PROJECT),vc707)
+	SBT_PROJECT       ?= fpga_platforms
+	MODEL             ?= VC707FPGATestHarness
+	VLOG_MODEL        ?= VC707FPGATestHarness
+	MODEL_PACKAGE     ?= chipyard.fpga.vc707
+	CONFIG            ?= RocketVC707Config
+	CONFIG_PACKAGE    ?= chipyard.fpga.vc707
+	GENERATOR_PACKAGE ?= chipyard
+	TB                ?= none # unused
+	TOP               ?= ChipTop
+	BOARD             ?= vc707
+	FPGA_BRAND        ?= xilinx
+endif
+
 include $(base_dir)/variables.mk
 
 # default variables to build the arty example
