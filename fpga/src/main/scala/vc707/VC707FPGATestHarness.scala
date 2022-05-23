@@ -1,39 +1,55 @@
 package chipyard.fpga.vc707
 
-import chipyard.harness.ApplyHarnessBinders
-import chipyard.iobinders.HasIOBinders
-import chipyard.{BuildTop, HasHarnessSignalReferences}
-import chisel3._
+import chipyard.{CanHaveMasterTLMemPort, ChipTop, DefaultClockFrequencyKey, ExtTLMem}
 import freechips.rocketchip.config.Parameters
-import freechips.rocketchip.diplomacy.LazyModule
-import sifive.fpgashells.shell.xilinx.VC707Shell
-import sifive.fpgashells.shell.xilinx.artyshell.ArtyShell
+import freechips.rocketchip.diplomacy.{BundleBridgeSource, LazyModule}
+import freechips.rocketchip.tilelink.TLClientNode
+import sifive.blocks.devices.uart.{PeripheryUARTKey, UARTPortIO}
+import sifive.fpgashells.clocks.{ClockGroup, ClockSinkNode, PLLFactoryKey, ResetWrangler}
+import sifive.fpgashells.shell.xilinx.VC707BaseShell
+import sifive.fpgashells.shell.{ClockInputDesignInput, ClockInputOverlayKey, DDRDesignInput, DDROverlayKey, UARTDesignInput, UARTOverlayKey}
 
-class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707Shell with HasHarnessSignalReferences {
+class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707BaseShell {
+  def dp = designParameters
 
-  val lazyDut = LazyModule(p(BuildTop)(p)).suggestName("chiptop")
+  // DOC include start: ClockOverlay
+  // place all clocks in the shell
+  require(dp(ClockInputOverlayKey).size >= 1)
+  val sysClkNode = dp(ClockInputOverlayKey)(0).place(ClockInputDesignInput()).overlayOutput.node
 
-  // Convert harness resets from Bool to Reset type.
-  val hReset = Wire(Reset())
-  hReset := reset
+  /*** Connect/Generate clocks ***/
 
-  val dReset = Wire(AsyncReset())
-  dReset := reset_core.asAsyncReset
+  // connect to the PLL that will generate multiple clocks
+  val harnessSysPLL = dp(PLLFactoryKey)()
+  harnessSysPLL := sysClkNode
 
-  // default to 32MHz clock
-  withClockAndReset(clock_32MHz, hReset) {
-    val dut = Module(lazyDut.module)
+  // create and connect to the dutClock
+  println(s"VCU118 FPGA Base Clock Freq: ${dp(DefaultClockFrequencyKey)} MHz")
+  val dutClock = ClockSinkNode(freqMHz = dp(DefaultClockFrequencyKey))
+  val dutWrangler = LazyModule(new ResetWrangler)
+  val dutGroup = ClockGroup()
+  dutClock := dutWrangler.node := dutGroup := harnessSysPLL
+
+  /*** UART ***/
+
+  // DOC include start: UartOverlay
+  // 1st UART goes to the VCU118 dedicated UART
+
+  /*** DDR ***/
+  val io_uart_bb = BundleBridgeSource(() => (new UARTPortIO(dp(PeripheryUARTKey).head)))
+  dp(UARTOverlayKey).head.place(UARTDesignInput(io_uart_bb))
+  // DOC include end: UartOverlay
+
+  val ddrNode = dp(DDROverlayKey).head.place(DDRDesignInput(dp(ExtTLMem).get.master.base, dutWrangler.node, harnessSysPLL)).overlayOutput.ddr
+  // connect 1 mem. channel to the FPGA DDR
+  val inParams = topDesign match { case td: ChipTop =>
+    td.lazySystem match { case lsys: CanHaveMasterTLMemPort =>
+      lsys.memTLNode.edges.in(0)
+    }
   }
+  val ddrClient = TLClientNode(Seq(inParams.master))
+  ddrNode := ddrClient
 
-  val buildtopClock = clock_32MHz
-  val buildtopReset = hReset
-  val success = false.B
+  /*** DDR ***/
 
-  val dutReset = dReset
-
-  // must be after HasHarnessSignalReferences assignments
-  lazyDut match { case d: HasIOBinders =>
-    ApplyHarnessBinders(this, d.lazySystem, d.portMap)
-  }
 }
-
