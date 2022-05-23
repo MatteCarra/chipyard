@@ -28,9 +28,11 @@ class WithVC707Tweaks extends Config(
   // harness binders
     new WithUART ++
     new WithDDRMem ++
+    new WithJTag ++
     // io binders
     new WithUARTIOPassthrough ++
     new WithTLIOPassthrough ++
+    new WithJTAGPassthrough ++
     // other configuration
     new WithDefaultPeripherals ++
     new chipyard.config.WithTLBackingMemory ++ // use TL backing memory
