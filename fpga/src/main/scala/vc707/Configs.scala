@@ -22,10 +22,6 @@ class WithSystemModifications extends Config((site, here, up) => {
   case SerialTLKey => None // remove serialized tl port
 })
 
-class WithVCU707ChipTop extends Config((site, here, up) => {
-  case DesignKey => (p: Parameters) => new ChipTop()(p).suggestName("chiptop")
-})
-
 // DOC include start: AbstractVC707 and Rocket
 class WithVC707Tweaks extends Config(
   // harness binders
@@ -43,7 +39,6 @@ class WithVC707Tweaks extends Config(
     new chipyard.config.WithNoDebug ++ // remove debug module
     new freechips.rocketchip.subsystem.WithoutTLMonitors ++
     new freechips.rocketchip.subsystem.WithNMemoryChannels(1) ++
-    new WithVCU707ChipTop ++
     new WithFPGAFrequency(100) // default 100MHz freq
 )
 
