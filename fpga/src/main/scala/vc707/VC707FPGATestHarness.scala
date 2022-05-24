@@ -5,10 +5,11 @@ import chisel3.Clock
 import freechips.rocketchip.config.Parameters
 import freechips.rocketchip.diplomacy.{BundleBridgeSource, LazyModule}
 import freechips.rocketchip.tilelink.TLClientNode
+import sifive.blocks.devices.spi.{PeripherySPIKey, SPIPortIO}
 import sifive.blocks.devices.uart.{PeripheryUARTKey, UARTPortIO}
 import sifive.fpgashells.clocks.{ClockGroup, ClockSinkNode, PLLFactoryKey, ResetWrangler}
 import sifive.fpgashells.shell.xilinx.{SysClockVC707PlacedOverlay, VC707BaseShell}
-import sifive.fpgashells.shell.{ClockInputDesignInput, ClockInputOverlayKey, DDRDesignInput, DDROverlayKey, UARTDesignInput, UARTOverlayKey}
+import sifive.fpgashells.shell.{ClockInputDesignInput, ClockInputOverlayKey, DDRDesignInput, DDROverlayKey, SPIDesignInput, SPIOverlayKey, UARTDesignInput, UARTOverlayKey}
 
 class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707BaseShell {
   def dp = designParameters
@@ -53,4 +54,8 @@ class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707Bas
   }
   val ddrClient = TLClientNode(Seq(inParams.master))
   ddrNode := ddrClient
+
+  /*** SPI ***/
+  val io_spi_bb = BundleBridgeSource(() => (new SPIPortIO(dp(PeripherySPIKey).head)))
+  dp(SPIOverlayKey).head.place(SPIDesignInput(dp(PeripherySPIKey).head, io_spi_bb))
 }

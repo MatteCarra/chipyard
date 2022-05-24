@@ -9,8 +9,11 @@ import testchipip.SerialTLKey
 import sifive.fpgashells.shell.DesignKey
 import chipyard.ChipTop
 import freechips.rocketchip.config.Parameters
+import sifive.blocks.devices.spi.{PeripherySPIKey, SPIParams}
+
 class WithDefaultPeripherals extends Config((site, here, up) => {
   case PeripheryUARTKey => List(UARTParams(address = BigInt(0x64000000L)))
+  case PeripherySPIKey => List(SPIParams(rAddress = BigInt(0x64001000L)))
 })
 
 class WithSystemModifications extends Config((site, here, up) => {
@@ -28,9 +31,11 @@ class WithVC707Tweaks extends Config(
   // harness binders
     new WithUART ++
     new WithDDRMem ++
+    new WithSPISDCard ++
     // io binders
     new WithUARTIOPassthrough ++
     new WithTLIOPassthrough ++
+    new WithSPIIOPassthrough ++
     // other configuration
     new WithDefaultPeripherals ++
     new chipyard.config.WithTLBackingMemory ++ // use TL backing memory

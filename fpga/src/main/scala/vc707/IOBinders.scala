@@ -20,6 +20,25 @@ class WithUARTIOPassthrough extends OverrideIOBinder({
   }
 })
 
+class WithSPIIOPassthrough  extends OverrideLazyIOBinder({
+  (system: HasPeripherySPI) => {
+    // attach resource to 1st SPI
+    ResourceBinding {
+      Resource(new MMCDevice(system.tlSpiNodes.head.device, 1), "reg").bind(ResourceAddress(0))
+    }
+
+    InModuleBody {
+      system.asInstanceOf[BaseSubsystem].module match { case system: HasPeripherySPIModuleImp => {
+        val io_spi_pins_temp = system.spi.zipWithIndex.map { case (dio, i) => IO(dio.cloneType).suggestName(s"spi_$i") }
+        (io_spi_pins_temp zip system.spi).map { case (io, sysio) =>
+          io <> sysio
+        }
+        (io_spi_pins_temp, Nil)
+      } }
+    }
+  }
+})
+
 class WithTLIOPassthrough extends OverrideIOBinder({
   (system: CanHaveMasterTLMemPort) => {
     val io_tl_mem_pins_temp = IO(DataMirror.internal.chiselTypeClone[HeterogeneousBag[TLBundle]](system.mem_tl)).suggestName("tl_slave")
