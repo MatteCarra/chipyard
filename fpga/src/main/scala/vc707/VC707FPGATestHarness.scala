@@ -18,9 +18,7 @@ class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707Bas
   // place all clocks in the shell
   require(dp(ClockInputOverlayKey).size >= 1)
 
-  val sysClkNode = sys_clock.get() match {
-    case Some(x: SysClockVC707PlacedOverlay) => x.node
-  }
+  val sysClkNode = sysClkNodes.head
 
   /*** Connect/Generate clocks ***/
 
