@@ -37,7 +37,7 @@ class WithDDRMem extends OverrideHarnessBinder({
 })
 
 class WithJTag extends OverrideHarnessBinder({
-  (system: HasPeripheryDebug, th: BaseModule with HasHarnessSignalReferences, ports: Seq[JTAGIO]) => {
+  (system: HasPeripheryDebug, th: BaseModule with HasHarnessSignalReferences, ports: Seq[JTAGChipIO]) => {
     th match {
       case vc707th: VC707FPGATestHarness => {
         require(ports.size == 1)
