@@ -1,23 +1,15 @@
 package chipyard.fpga.vc707
 
-import chipsalliance.rocketchip.config.Config
-import chipyard.{BuildTop, CanHaveMasterTLMemPort, ChipTop, DefaultClockFrequencyKey, ExtTLMem}
-import chisel3.experimental.Analog
-import chisel3.fromIntToWidth
+import chipyard.{CanHaveMasterTLMemPort, ChipTop, DefaultClockFrequencyKey, ExtTLMem}
 import freechips.rocketchip.config.Parameters
 import freechips.rocketchip.diplomacy.{BundleBridgeSource, LazyModule}
 import freechips.rocketchip.tilelink.TLClientNode
-import sifive.blocks.devices.jtag.JTAGPins
 import sifive.blocks.devices.uart.{PeripheryUARTKey, UARTPortIO}
 import sifive.fpgashells.clocks.{ClockGroup, ClockSinkNode, PLLFactoryKey, ResetWrangler}
 import sifive.fpgashells.shell.xilinx.VC707BaseShell
-import sifive.fpgashells.shell.{ClockInputDesignInput, ClockInputOverlayKey, DDRDesignInput, DDROverlayKey, DesignKey, JTAGDebugDesignInput, JTAGDebugOverlayKey, UARTDesignInput, UARTOverlayKey}
+import sifive.fpgashells.shell.{ClockInputDesignInput, ClockInputOverlayKey, DDRDesignInput, DDROverlayKey, UARTDesignInput, UARTOverlayKey}
 
-class WithVCU707ChipTop extends Config((site, here, up) => {
-  case DesignKey => (p: Parameters) => new ChipTop()(p).suggestName("chiptop")
-})
-
-class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707BaseShell with WithVCU707ChipTop {
+class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707BaseShell {
   def dp = designParameters
 
   // DOC include start: ClockOverlay
@@ -41,7 +33,7 @@ class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707Bas
   /*** UART ***/
 
   // DOC include start: UartOverlay
-  // 1st UART goes to the VC707 dedicated UART
+  // 1st UART goes to the VCU118 dedicated UART
 
   /*** DDR ***/
   val io_uart_bb = BundleBridgeSource(() => (new UARTPortIO(dp(PeripheryUARTKey).head)))
@@ -58,7 +50,6 @@ class VC707FPGATestHarness(override implicit val p: Parameters) extends VC707Bas
   val ddrClient = TLClientNode(Seq(inParams.master))
   ddrNode := ddrClient
 
-  val jtagNode = dp(JTAGDebugOverlayKey).head.place(JTAGDebugDesignInput()).overlayOutput.jtag.getWrappedValue
   /*** DDR ***/
 
 }
