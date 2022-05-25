@@ -12,8 +12,8 @@ import freechips.rocketchip.config.Parameters
 import sifive.blocks.devices.spi.{PeripherySPIKey, SPIParams}
 
 class WithDefaultPeripherals extends Config((site, here, up) => {
-  case PeripheryUARTKey => List(UARTParams(address = BigInt(0x64000000L)))
-  case PeripherySPIKey => List(SPIParams(rAddress = BigInt(0x64001000L)))
+  case PeripheryUARTKey => List(UARTParams(address = BigInt(0x44a00000)))
+  case PeripherySPIKey => List(SPIParams(rAddress = BigInt(0x10023000)))
 })
 
 class WithSystemModifications extends Config((site, here, up) => {
@@ -39,7 +39,8 @@ class WithVC707Tweaks extends Config(
     new chipyard.config.WithNoDebug ++ // remove debug module
     new freechips.rocketchip.subsystem.WithoutTLMonitors ++
     new freechips.rocketchip.subsystem.WithNMemoryChannels(1) ++
-    new WithFPGAFrequency(100) // default 100MHz freq
+    new WithVCU707ChipTop ++
+    new WithFPGAFrequency(25) // default 100MHz freq
 )
 
 class RocketVC707Config extends Config(
