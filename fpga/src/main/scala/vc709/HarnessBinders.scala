@@ -10,21 +10,8 @@ import freechips.rocketchip.tilelink.{TLBundle}
 import sifive.blocks.devices.i2c.{HasPeripheryI2CModuleImp, I2CPort}
 import sifive.blocks.devices.uart.{HasPeripheryUARTModuleImp, UARTPortIO}
 import sifive.blocks.devices.gpio.{HasPeripheryGPIOModuleImp, GPIOPortIO}
-import sifive.fpgashells.devices.xilinx.xilinxvc709pciex1.{HasSystemXilinxVC709PCIeX1ModuleImp, XilinxVC709PCIeX1IO}
-
 import chipyard.{HasHarnessSignalReferences, CanHaveMasterTLMemPort}
 import chipyard.harness.{OverrideHarnessBinder}
-
-/*** I2C ***/
-class WithI2C extends OverrideHarnessBinder({
-  (system: HasPeripheryI2CModuleImp, th: BaseModule with HasHarnessSignalReferences, ports: Seq[I2CPort]) => {
-    th match { case vc709th: VC709FPGATestHarnessImp => {
-      require(ports.size == 1)
-
-      vc709th.vc709Outer.io_i2c_bb.bundle <> ports.head
-    } }
-  }
-})
 
 /*** UART ***/
 class WithUART extends OverrideHarnessBinder({

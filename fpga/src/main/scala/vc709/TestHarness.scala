@@ -18,7 +18,7 @@ import sifive.blocks.devices.i2c._
 import sifive.blocks.devices.uart._
 import sifive.blocks.devices.gpio._
 
-import chipyard.{HasHarnessSignalReferences, HasTestHarnessFunctions, BuildTop, ChipTop, ExtTLMem, CanHaveMasterTLMemPort}
+import chipyard.{HasHarnessSignalReferences, BuildTop, ChipTop, ExtTLMem, CanHaveMasterTLMemPort}
 import chipyard.iobinders.{HasIOBinders}
 import chipyard.harness.{ApplyHarnessBinders}
 
@@ -53,12 +53,6 @@ class VC709FPGATestHarness(override implicit val p: Parameters) extends VC709She
 
 // DOC include end: ClockOverlay
 
-  /*** I2C ***/
-
-  // 1st I2C goes to the VC709 dedicated I2C
-  val io_i2c_bb = BundleBridgeSource(() => (new I2CPort))
-  dp(I2COverlayKey).head.place(I2CDesignInput(io_i2c_bb))
-  
   /*** UART ***/
 
 // DOC include start: UartOverlay
@@ -115,10 +109,7 @@ class VC709FPGATestHarnessImp(_outer: VC709FPGATestHarness) extends LazyRawModul
   val powerOnReset: Bool = PowerOnResetFPGAOnly(sysclk)
   _outer.sdc.addAsyncPath(Seq(powerOnReset))
 
-  val ereset: Bool = _outer.chiplink.get() match {
-    case Some(x: ChipLinkVC709PlacedOverlay) => !x.ereset_n
-    case _ => false.B
-  }
+  val ereset: Bool = false.B
 
   _outer.pllReset := (resetIBUF.io.O || powerOnReset || false.B)
 
@@ -126,18 +117,15 @@ class VC709FPGATestHarnessImp(_outer: VC709FPGATestHarness) extends LazyRawModul
   val hReset = Wire(Reset())
   hReset := _outer.dutClock.in.head._1.reset
 
-  val harnessClock = _outer.dutClock.in.head._1.clock
-  val harnessReset = WireInit(hReset)
+  val buildtopClock = _outer.dutClock.in.head._1.clock
+  val buildtopReset = WireInit(hReset)
   val dutReset = hReset.asAsyncReset
   val success = false.B
 
-  childClock := harnessClock
-  childReset := harnessReset
+  childClock := buildtopClock
+  childReset := buildtopReset
 
   // harness binders are non-lazy
-  _outer.topDesign match { case d: HasTestHarnessFunctions =>
-    d.harnessFunctions.foreach(_(this))
-  }
   _outer.topDesign match { case d: HasIOBinders =>
     ApplyHarnessBinders(this, d.lazySystem, d.portMap)
   }

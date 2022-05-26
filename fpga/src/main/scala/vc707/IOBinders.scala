@@ -1,22 +1,23 @@
 package chipyard.fpga.vc707
 
+import barstools.iocell.chisel.IOCell
 import chipyard.CanHaveMasterTLMemPort
-import chipyard.iobinders.{OverrideIOBinder, OverrideLazyIOBinder}
+import chipyard.iobinders.{IOCellKey, OverrideIOBinder, OverrideLazyIOBinder}
 import chisel3.experimental.{DataMirror, IO}
 import freechips.rocketchip.diplomacy.{InModuleBody, Resource, ResourceAddress, ResourceBinding}
 import freechips.rocketchip.subsystem.BaseSubsystem
 import freechips.rocketchip.tilelink.TLBundle
 import freechips.rocketchip.util.HeterogeneousBag
 import sifive.blocks.devices.spi.{HasPeripherySPI, HasPeripherySPIModuleImp, MMCDevice}
-import sifive.blocks.devices.uart.HasPeripheryUARTModuleImp
+import sifive.blocks.devices.uart.{HasPeripheryUARTModuleImp, UARTPortIO}
 
 class WithUARTIOPassthrough extends OverrideIOBinder({
   (system: HasPeripheryUARTModuleImp) => {
-    val io_uart_pins_temp = system.uart.zipWithIndex.map { case (dio, i) => IO(dio.cloneType).suggestName(s"uart_$i") }
-    (io_uart_pins_temp zip system.uart).map { case (io, sysio) =>
-      io <> sysio
-    }
-    (io_uart_pins_temp, Nil)
+    val (ports: Seq[UARTPortIO], cells2d) = system.uart.zipWithIndex.map({ case (u, i) =>
+      val (port, ios) = IOCell.generateIOFromSignal(u, s"uart_${i}", system.p(IOCellKey), abstractResetAsAsync = true)
+      (port, ios)
+    }).unzip
+    (ports, cells2d.flatten)
   }
 })
 

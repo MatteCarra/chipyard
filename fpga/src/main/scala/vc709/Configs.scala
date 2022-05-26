@@ -43,11 +43,9 @@ class WithSystemModifications extends Config((site, here, up) => {
 // DOC include start: AbstractVC709 and Rocket
 class WithVC709Tweaks extends Config(
   new WithUART ++
-  new WithI2C ++
   new WithGPIO ++
   new WithDDRMem ++
   new WithUARTIOPassthrough ++
-  new WithI2CIOPassthrough ++
   new WithGPIOIOPassthrough ++
   new WithTLIOPassthrough ++
   new WithDefaultPeripherals ++

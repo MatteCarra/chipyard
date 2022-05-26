@@ -39,7 +39,6 @@ class WithVC707Tweaks extends Config(
     new chipyard.config.WithNoDebug ++ // remove debug module
     new freechips.rocketchip.subsystem.WithoutTLMonitors ++
     new freechips.rocketchip.subsystem.WithNMemoryChannels(1) ++
-    new WithVCU707ChipTop ++
     new WithFPGAFrequency(25) // default 100MHz freq
 )
 
