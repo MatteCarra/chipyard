@@ -13,15 +13,15 @@ import sifive.blocks.devices.uart.{HasPeripheryUARTModuleImp, UARTPortIO}
 
 class WithUARTIOPassthrough extends OverrideIOBinder({
   (system: HasPeripheryUARTModuleImp) => {
-    val (ports: Seq[UARTPortIO], cells2d) = system.uart.zipWithIndex.map({ case (u, i) =>
-      val (port, ios) = IOCell.generateIOFromSignal(u, s"uart_${i}", system.p(IOCellKey), abstractResetAsAsync = true)
-      (port, ios)
-    }).unzip
-    (ports, cells2d.flatten)
+    val io_uart_pins_temp = system.uart.zipWithIndex.map { case (dio, i) => IO(dio.cloneType).suggestName(s"uart_$i") }
+    (io_uart_pins_temp zip system.uart).map { case (io, sysio) =>
+      io <> sysio
+    }
+    (io_uart_pins_temp, Nil)
   }
 })
 
-class WithSPIIOPassthrough  extends OverrideLazyIOBinder({
+/*class WithSPIIOPassthrough  extends OverrideLazyIOBinder({
   (system: HasPeripherySPI) => {
     // attach resource to 1st SPI
     ResourceBinding {
@@ -38,7 +38,7 @@ class WithSPIIOPassthrough  extends OverrideLazyIOBinder({
       } }
     }
   }
-})
+})*/
 
 class WithTLIOPassthrough extends OverrideIOBinder({
   (system: CanHaveMasterTLMemPort) => {
