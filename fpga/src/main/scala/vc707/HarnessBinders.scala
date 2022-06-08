@@ -19,13 +19,13 @@ class WithUART extends OverrideHarnessBinder({
 })
 
 /*** SPI ***/
-class WithSPISDCard extends OverrideHarnessBinder({
+/*class WithSPISDCard extends OverrideHarnessBinder({
   (system: HasPeripherySPI, th: BaseModule with HasHarnessSignalReferences, ports: Seq[SPIPortIO]) => {
     th match { case vc707th: VC707FPGATestHarnessImp => {
       vc707th.vc707Outer.io_spi_bb.bundle <> ports.head
     } }
   }
-})
+})*/
 
 /*** Experimental DDR ***/
 class WithDDRMem extends OverrideHarnessBinder({
