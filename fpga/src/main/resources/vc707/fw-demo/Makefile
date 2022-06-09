@@ -15,7 +15,7 @@ PBUS_CLK ?= 1000000 # default to 1MHz but really should be overridden
 default: elf bin dump
 
 elf := $(BUILD_DIR)/fw_test.elf
-$(elf): hello.c kprintf.c
+$(elf): head.S hello.c kprintf.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -DTL_CLK="$(PBUS_CLK)UL" $(LFLAGS) -o $@ head.S hello.c kprintf.c
 

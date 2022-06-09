@@ -1,7 +1,6 @@
 package chipyard.fpga.vc707
 
 import sys.process._
-
 import chipsalliance.rocketchip.config.Config
 import freechips.rocketchip.diplomacy.DTSTimebase
 import freechips.rocketchip.subsystem.ExtMem
@@ -9,7 +8,7 @@ import sifive.blocks.devices.uart.{PeripheryUARTKey, UARTParams}
 import sifive.fpgashells.shell.xilinx.VC7071GDDRSize
 import testchipip.SerialTLKey
 import sifive.fpgashells.shell.DesignKey
-import chipyard.{ChipTop, DefaultClockFrequencyKey}
+import chipyard.{ChipTop, DefaultClockFrequencyKey, SmallBoomConfig}
 import freechips.rocketchip.config.Parameters
 import freechips.rocketchip.devices.tilelink.BootROMLocated
 import sifive.blocks.devices.spi.{PeripherySPIKey, SPIParams}
@@ -23,7 +22,7 @@ class WithSystemModifications extends Config((site, here, up) => {
   case DTSTimebase => BigInt(1000000)
   case BootROMLocated(x) => up(BootROMLocated(x), site).map { p =>
     // invoke makefile for uart boot
-    val freqMHz = (25 * 1e6).toLong
+    val freqMHz = (50 * 1e6).toLong
     val make = s"make -C fpga/src/main/resources/vc707/uartboot PBUS_CLK=${freqMHz} bin"
     require (make.! == 0, "Failed to build bootrom")
     p.copy(hang = 0x10000, contentFileName = s"./fpga/src/main/resources/vc707/uartboot/build/bootrom.bin")
@@ -49,12 +48,16 @@ class WithVC707Tweaks extends Config(
     new chipyard.config.WithNoDebug ++ // remove debug module
     new freechips.rocketchip.subsystem.WithoutTLMonitors ++
     new freechips.rocketchip.subsystem.WithNMemoryChannels(1) ++
-    new WithFPGAFrequency(25) // default 100MHz freq
+    new WithFPGAFrequency(50) // default 100MHz freq
 )
 
 class RocketVC707Config extends Config(
   new WithVC707Tweaks ++
     new chipyard.RocketConfig)
+
+class BoomVC707Config extends Config(
+    new WithVC707Tweaks ++
+    new SmallBoomConfig)
 
 class WithFPGAFrequency(fMHz: Double) extends Config(
   new chipyard.config.WithPeripheryBusFrequency(fMHz) ++ // assumes using PBUS as default freq.

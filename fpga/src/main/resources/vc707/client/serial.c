@@ -29,7 +29,7 @@ int init_serial(char *device)
 
     //串口主要设置结构体termios <termios.h>
     struct termios options;
-        
+
     /**1. tcgetattr函数用于获取与终端相关的参数。
     *参数fd为终端的文件描述符，返回的结果保存在termios结构体中
     */
@@ -45,14 +45,14 @@ int init_serial(char *device)
     options.c_oflag = 0;                   //输出模式
     options.c_lflag = 0;                   //不激活终端模式
     cfsetospeed(&options, B115200);        //设置波特率
-        
+
     /**3. 设置新属性，TCSANOW：所有改变立即生效*/
     tcflush(serial_fd, TCIFLUSH);          //溢出数据可以接收，但不读
     tcsetattr(serial_fd, TCSANOW, &options);
-        
+
     return 0;
 }
-    
+
 /**
 *串口发送数据
 *@fd:串口描述符
@@ -73,7 +73,7 @@ int uart_send(int fd, uint8_t *data, int datalen)
     }
     return 0;
 }
-    
+
 /**
 *串口接收数据
 *要求启动后，在pc端发送ascii文件
@@ -84,11 +84,11 @@ int uart_recv(int fd, uint8_t *data, int datalen)
     int len=0, ret = 0;
     fd_set fs_read;
     struct timeval tv_timeout;
-        
+
     FD_ZERO(&fs_read);
     FD_SET(fd, &fs_read);
 
-#ifdef S_TIMEOUT    
+#ifdef S_TIMEOUT
     tv_timeout.tv_sec = (10*20/115200+2);
     tv_timeout.tv_usec = 0;
     ret = select(fd+1, &fs_read, NULL, NULL, NULL);
@@ -97,7 +97,7 @@ int uart_recv(int fd, uint8_t *data, int datalen)
 #endif
 
     //如果返回0，代表在描述符状态改变前已超过timeout时间,错误返回-1
-        
+
     if (FD_ISSET(fd, &fs_read)) {
         len = read(fd, data, datalen);
         total_length += len ;
@@ -106,7 +106,7 @@ int uart_recv(int fd, uint8_t *data, int datalen)
         perror("select");
         return -1;
     }
-        
+
     return 0;
 }
 
@@ -128,7 +128,7 @@ size_t write_block(int serial_fd, char *buf)
 {
     size_t retry = -1;
     char cmd = NAK;
-    
+
     // calculate crc
     uint16_t crc_exp = crc16((uint8_t *)buf);
     do {
@@ -154,16 +154,16 @@ void update_progress(char *bar, uint8_t p){
 }
 
 size_t write_batch(int serial_id, char *buf, size_t num_blocks){
-    
+
     size_t retry = 0;
 
     for (size_t i = 0; i < num_blocks; i++) {
         retry += write_block(serial_fd, buf + i * CRC16_LEN);
         update_progress(bar, i * 100 / num_blocks);
     }
-    
+
     printf("\n");
-    
+
     return retry;
 }
 
@@ -250,9 +250,9 @@ int send_file(char *address, char *filename)
     write_cmd(UART_CMD_TRANSFER);
     write_header(addr, len);
     write_file(fd);
-    
+
     fclose(fd);
-    
+
     return 0;
 }
 
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 {
     for (int i = 0; i < argc; i++)
         printf("argv[%d]: %s\n", i, argv[i]);
-        
+
     // init connection
     if (init_serial(argv[1]) != 0) {
         printf("open serial failed.\n");
@@ -270,9 +270,18 @@ int main(int argc, char *argv[])
     }
     printf("open serial successfully.\n");
 
-    send_file(argv[2], argv[3]);
-    printf("transfer finished.\n");
-    write_cmd(UART_CMD_END);
+    int i = 0;
+    i = atoi(argv[2]);
+    uart_send(serial_fd, ((uint8_t*) (&i)), 4);
+
+    i = atoi(argv[3]);
+    uart_send(serial_fd, ((uint8_t*) (&i)), 4);
+
+    printf("Numbers wrote correctly.\n");
+
+    uart_recv(serial_fd, ((uint8_t*) (&i)), 4);
+
+    printf("%d\n", i);
 
     close(serial_fd);
 

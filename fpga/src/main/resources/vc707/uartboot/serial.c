@@ -50,10 +50,8 @@ int main(void)
 	REG32(uart, UART_REG_TXCTRL) = UART_TXEN;
     REG32(uart, UART_REG_RXCTRL) = UART_RXEN;
 
-	kputs("BOOT INIT");
-    
+    kputs("BOOT INIT");
     session();
-
 	kputs("BOOT END");
 
 	REG32(uart, UART_REG_TXCTRL) &= ~UART_TXEN;
